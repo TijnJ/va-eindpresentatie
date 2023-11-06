@@ -5,3 +5,5 @@ pydeck
 streamlit
 statsmodels
 plotly
+matplotlib
+
