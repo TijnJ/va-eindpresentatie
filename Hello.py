@@ -98,29 +98,10 @@ def run():
     df3 = df3.drop('notes', axis=1)
     merged_data = pd.merge(df, df2, left_on='NOCCode', right_on='NOC')
     merged_data2 = pd.merge(merged_data, df3, on='NOC')
-    
-    olympics2016 = pd.read_csv('athlete_events3.csv')
-    regions = pd.read_csv('noc_regions.csv')
     Life = pd.read_csv("life expectancy.csv")
-    cow = pd.read_csv("countries of the world.csv")
-    athlete = pd.read_csv("athlete_events3.csv")
-    merged_df = pd.merge(athlete, regions, on="NOC", how="inner")
-    merged_df = merged_df[merged_df['Year'] == 2016]
-    medal_dummies = pd.get_dummies(merged_df['Medal'])
-    medal_dummies['No_Medal'] = 1  # Initialize 'No_Medal' column to 1
-    medal_dummies['No_Medal'] = medal_dummies['No_Medal'].where(medal_dummies['Bronze'] + medal_dummies['Silver'] + medal_dummies['Gold'] < 1, 0)
-    bbb = pd.concat([merged_df, medal_dummies], axis=1)
-    merged_df = bbb.drop('Medal', axis=1)
-    countries = merged_df.groupby(['Team','NOC',"Games",'Year','Season'])[['Bronze', 'Gold', 'Silver', 'No_Medal']].sum()
-    countries['total'] = 0
-    countries['total'] = countries['total'].astype(int)
-    countries['total'] = countries['Bronze'].astype(int)+countries['Gold'].astype(int)+countries['Silver'].astype(int)
-    countries = countries.reset_index()
-    olympics2016 = countries[countries['Year']==2016].merge(worldpop, left_on=['Team'], right_on=['Country/Territory'], how='inner')
-    countries2016= olympics2016.merge(Life, left_on=['Year', 'Team'], right_on=['Year', 'Country Name'], how='inner')
-    meanv = countries2016['CO2'].mean()
-    countries2016['CO2'] = countries2016['CO2'].fillna(meanv)
-    europe2016 = countries2016[countries2016['Continent']=='Europe']
+    worldpop = pd.read_csv("world_population.csv")
+
+
 
     st.title("Olympische Spelen")
     st.image('olympischespelenrio_pixabay.jpg', use_column_width=True)
@@ -145,48 +126,48 @@ In deze stacked bar plot is te zien hoeveel medailles elk land per continent hee
     st.write("""
 In deze stacked bar plot is te zien hoeveel medailles elk land per continent heeft gewonnen, ook onder te verdelen in gouden, zilveren en bronze medailles. Zo krijg je toch al heel snel een mooi overzicht van de data. """)
 
-    cr = countries2016[['total','Area (km²)','2015 Population','CO2']].corr(method = 'pearson')
+####################################################################################################
+    df['Team/NOC'] = df['Team/NOC'].replace('United States of America', 'United States')
+    df.loc[1, 'Team/NOC'] = "China"
+    a= pd.merge(df, Life, left_on=["Team/NOC"],right_on = ['Country Name'])    
+    abc= pd.merge(a, worldpop, left_on="Country Name",right_on = 'Country/Territory')
+    abc = abc.rename(columns={'Continent_x': 'Continent'})
+
+    cr = abc[['Total','Prevelance of Undernourishment','CO2','Health Expenditure %','Area (km²)']].corr(method = 'pearson')
     fig = go.Figure(go.Heatmap(x=cr.columns, y = cr.columns, z = cr.values.tolist(), colorscale = 'rdylgn', zmin = -1, zmax = 1))
-    st.title("Correlatie van de variabelen met totaal aantal medailes")
+
     st.plotly_chart(fig)
     st.write("""In deze plot kan je de Correlatie zien tussen de varabelen in de dataset""")
+    abc = abc[abc['Year'] ==2019]
+
+    abc['Life Expectancy World Bank'] = abc['Life Expectancy World Bank'].fillna(abc['Life Expectancy World Bank'].mean())
+    abc['Prevelance of Undernourishment'] = abc['Prevelance of Undernourishment'].fillna(abc['Prevelance of Undernourishment'].mean())
+    abc['CO2'] = abc['CO2'].fillna(abc['CO2'].mean())
+    abc['Health Expenditure %'] = abc['Health Expenditure %'].fillna(abc['Health Expenditure %'].mean())
+    abc['Sanitation'] = abc['Sanitation'].fillna(abc['Sanitation'].mean())
     
 
-    fig = px.scatter(countries2016, x='Area (km²)', y='total', title='Spreidingsdiagram totaal aantal medailles tegen opperflakte'
-                 , trendline='ols',  hover_data= ['Team'], color = 'Continent')
+
+
+    fig = px.scatter(abc, x='2020 Population', y='Total', title='Spreidingsdiagram totaal aantal medailles tegen wereld populatie'
+                , trendline='ols', hover_data= ['Country Name'],color = 'Continent')
     st.plotly_chart(fig)
 
-    fig = px.scatter(countries2016, x='CO2', y='total', title='Spreidingsdiagram totaal aantal medailles tegen CO2'
-                 , trendline='ols',  hover_data= ['Team'], color = 'Continent')
+    fig = px.scatter(abc, x='Prevelance of Undernourishment', y='Total', title='Spreidingsdiagram totaal aantal medailles tegen ondervoeding'
+                 ,  hover_data= ['Team/NOC'],color = 'Continent')
     st.plotly_chart(fig)
 
-    fig = px.scatter(countries2016, x='2015 Population', y='total', title='Spreidingsdiagram totaal aantal medailles tegen wereld populatie'
-                 , trendline='ols',  hover_data= ['Team'], color = 'Continent')
+    fig = px.scatter(abc, x='CO2', y='Total', title='Spreidingsdiagram totaal aantal medailles tegen CO2'
+                 , trendline='ols',  hover_data= ['Team/NOC'],color = 'Continent')
     st.plotly_chart(fig)
-    
-    # Extract features and target variable
-    X = europe2016[['Area (km²)','2015 Population','CO2']]
-    y = europe2016['total']
 
-    # Add a constant (intercept)
-    X = sm.add_constant(X)
+    fig = px.scatter(abc, x='2020 Population', y='Total', title='Spreidingsdiagram totaal aantal medailles tegen aantal inwoners'
+                 , trendline='ols',  hover_data= ['Team/NOC'],color = 'Continent')
+    st.plotly_chart(fig)
 
-    # Create the Linear Regression Model
-    model = sm.OLS(y, X).fit()
 
-    # Get Regression Summary
-
-    coefficients = model.params
-    intercept = coefficients['const']
-    coeffs = coefficients.drop('const')
-    formula = f'Y = {intercept:.2f} + ' + ' + '.join([f'{coeff:.2f} * {feature}' for feature, coeff in zip(coeffs.index, coeffs)])
-    st.write('Formula: 4.8131 + 6.775e-06 * Area (km²)+ -8.696e-08 * 2015 Population+2.377e-05 * CO2')
-    st.write("R-squared: 0.509")
-
-    # Extract features and target variable
-    X = countries2016[['Area (km²)','2015 Population','CO2']]
-    y = countries2016['total']
-
+    X = abc[['Prevelance of Undernourishment','CO2','Health Expenditure %','Area (km²)']]
+    y = abc['Total']
     # Add a constant (intercept)
     X = sm.add_constant(X)
 
@@ -195,11 +176,17 @@ In deze stacked bar plot is te zien hoeveel medailles elk land per continent hee
 
     # Get Regression Summary
     summary = model.summary()
-    print(summary)
+
+    st.write('Formula: -12.1819 + -0.1218 * Undernourishment+ 7.884e-06*CO2+2.7159 * Health Expenditure + 1.509e-06 * Area (km²)')
+    st.write("R-squared: 0.736")
+
     ypred = model.predict(X)
-    X['predicted wins'] = ypred
-    XYZ = X.merge(countries2016, on = ['Area (km²)', '2015 Population','CO2'])
-    fig = px.bar(XYZ.sort_values("predicted wins", ascending=False).head(10), x='Team', y='predicted wins', title='top 10 landen met de meeste madailles in 2016')
+    X['Aantal medailles'] = ypred
+    XYZ = X.merge(abc, on = ['Prevelance of Undernourishment','CO2','Health Expenditure %','Area (km²)'])
+    fig = px.bar(XYZ.sort_values("Aantal medailles", ascending=False).head(10), x='Team/NOC', y='Aantal medailles'
+                 , title='Voorspelling voor 2024', color ='Team/NOC' )
+    fig.update_xaxes(title_text='Land')
+    fig.update_layout(showlegend=False)
     st.plotly_chart(fig)
 
 
