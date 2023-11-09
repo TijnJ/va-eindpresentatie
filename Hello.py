@@ -123,7 +123,7 @@ def run():
     europe2016 = countries2016[countries2016['Continent']=='Europe']
 
     st.title("Olympische Spelen")
-    st.image('olympischespelenrio_pixabay.jpg', caption='Your Image Caption', use_column_width=True)
+    st.image('olympischespelenrio_pixabay.jpg', use_column_width=True)
     
     figkaart=Kaart(df)
     st.plotly_chart(figkaart)
