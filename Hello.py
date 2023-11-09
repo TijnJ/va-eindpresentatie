@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
 
 LOGGER = get_logger(__name__)
 
@@ -84,8 +85,7 @@ def run():
         page_title="Hello",
         page_icon="👋",
     )
-
-    st.write("Olympic games")
+    worldpop = pd.read_csv("world_population.csv")
     df = pd.read_csv('Tokyo 2021 dataset v3.csv')
     df2 = pd.read_csv('athlete_events2.csv')
     df3 = pd.read_csv('noc_regions.csv')
@@ -99,6 +99,28 @@ def run():
     merged_data = pd.merge(df, df2, left_on='NOCCode', right_on='NOC')
     merged_data2 = pd.merge(merged_data, df3, on='NOC')
     
+    olympics2016 = df2
+    regions = df3
+    Life = pd.read_csv("life expectancy.csv")
+    cow = pd.read_csv("countries of the world.csv")
+    athlete = pd.read_csv("athlete_events.csv")
+    merged_df = pd.merge(athlete, regions, on="NOC", how="inner")
+    medal_dummies = pd.get_dummies(merged_df['Medal'])
+    medal_dummies['No_Medal'] = 1  # Initialize 'No_Medal' column to 1
+    medal_dummies['No_Medal'] = medal_dummies['No_Medal'].where(medal_dummies['Bronze'] + medal_dummies['Silver'] + medal_dummies['Gold'] < 1, 0)
+    df = pd.concat([merged_df, medal_dummies], axis=1)
+    merged_df = df.drop('Medal', axis=1)
+    countries = merged_df.groupby(['Team','NOC',"Games",'Year','Season'])[['Bronze', 'Gold', 'Silver', 'No_Medal']].sum()
+    countries['total'] = 0
+    countries['total'] = countries['total'].astype(float)
+    countries['total'] = countries['Bronze'].astype(float)+countries['Gold'].astype(float)+countries['Silver'].astype(float)
+    countries = countries.reset_index()
+    olympics2016 = countries[countries['Year']==2016].merge(worldpop, left_on=['Team'], right_on=['Country/Territory'], how='inner')
+    countries2016= olympics2016.merge(Life, left_on=['Year', 'Team'], right_on=['Year', 'Country Name'], how='inner')
+
+
+    st.write("Olympic games")
+
     figkaart=Kaart(df)
     st.plotly_chart(figkaart)
 
