@@ -82,7 +82,7 @@ def boxmetslider(merged_data2):
 
 def run():
     st.set_page_config(
-        page_title="Hello",
+        page_title="Olympische Spelen",
         page_icon="👋",
     )
     worldpop = pd.read_csv("world_population.csv")
@@ -122,7 +122,7 @@ def run():
     countries2016['CO2'] = countries2016['CO2'].fillna(meanv)
     europe2016 = countries2016[countries2016['Continent']=='Europe']
 
-    st.title("Olympic games")
+    st.title("Olympische Spelen")
     st.image('olympischespelenrio_pixabay.jpg', caption='Your Image Caption', use_column_width=True)
     
     figkaart=Kaart(df)
