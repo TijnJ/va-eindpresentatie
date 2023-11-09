@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import statsmodels.api as sm
-import matplotlib
+import matplotlib.pyplot as plt
 
 LOGGER = get_logger(__name__)
 
@@ -19,6 +19,40 @@ def Kaart(df):
                     color='Total',  # Zorg ervoor dat deze kolom bestaat in je DataFrame
                     color_continuous_scale='rdbu'  # Kies een geschikt kleurenschema
                    )
+    return fig
+
+def MedailleVerdelingPerLandEnContinent(df):
+    teams = df['Team/NOC']
+    gold_medals = df['Gold Medal']
+    silver_medals = df['Silver Medal']
+    bronze_medals = df['Bronze Medal']
+    continents = df['Continent']
+ 
+    data = pd.DataFrame({
+        'Team': teams,
+        'Gold': gold_medals,
+        'Silver': silver_medals,
+        'Bronze': bronze_medals,
+        'Continent': continents
+    })
+ 
+    fig, ax = plt.subplots()
+ 
+    def plot_stacked_bar_chart(selected_continent):
+        filtered_data = data[data['Continent'] == selected_continent]
+        ax.bar(filtered_data['Team'], filtered_data['Gold'], label='Gold')
+        ax.bar(filtered_data['Team'], filtered_data['Silver'], bottom=filtered_data['Gold'], label='Silver')
+        ax.bar(filtered_data['Team'], filtered_data['Bronze'], bottom=filtered_data['Gold'] + filtered_data['Silver'], label='Bronze')
+ 
+        ax.set_ylabel('Aantal Medailles')
+        ax.set_title(f'Medailleverdeling per Land in {selected_continent}')
+        ax.set_xticks(filtered_data['Team'])
+        ax.set_xticklabels(filtered_data['Team'], rotation=90)
+        ax.legend()
+ 
+    selected_continent = st.selectbox('Selecteer een Continent', data['Continent'].unique(), key='continent_selectbox')
+    plot_stacked_bar_chart(selected_continent)
+ 
     return fig
 
 def boxmetslider(merged_data2):
@@ -71,9 +105,13 @@ def run():
     fig_box = boxmetslider(merged_data2)
 
     st.plotly_chart(fig_box)
+    
 
     #st.pyplot(fig=MedailleVerdelingPerLandEnContinent(df), clear_figure=None, use_container_width=True)
-
+    fig = MedailleVerdelingPerLandEnContinent(df)
+    st.pyplot(fig)
+    st.write("""
+In deze stacked bar plot is te zien hoeveel medailles elk land per continent heeft gewonnen, ook onder te verdelen in gouden, zilveren en bronze medailles. Zo krijg je toch al heel snel een mooi overzicht van de data. """)
 
 
 
