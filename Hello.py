@@ -127,11 +127,17 @@ def run():
     
     figkaart=Kaart(df)
     st.plotly_chart(figkaart)
+    st.write("""
+Op de kaart is in een snel overzicht et zien welke landen de meeste olympische medailles hebben gewonnen zonder onderscheiding in de medailles: Goud, zilver en brons. Omdat de kaart de heatmap functie heeft kan je zo gemakkelijk zien wat de hoeveelheid per land is.""")
 
     fig_box = boxmetslider(merged_data2)
-
     st.plotly_chart(fig_box)
-    
+
+    st.write("""
+In deze boxplot is te zien wat de spreiding is van de leeftijd per sport. Je kan goed outliers zien en snel een goed overzicht krijgen van de leeftijd per sport.""")
+
+    st.write("""
+In deze stacked bar plot is te zien hoeveel medailles elk land per continent heeft gewonnen, ook onder te verdelen in gouden, zilveren en bronze medailles. Zo krijg je toch al heel snel een mooi overzicht van de data. """)
 
     #st.pyplot(fig=MedailleVerdelingPerLandEnContinent(df), clear_figure=None, use_container_width=True)
     fig = MedailleVerdelingPerLandEnContinent(df)
@@ -141,20 +147,20 @@ In deze stacked bar plot is te zien hoeveel medailles elk land per continent hee
 
     cr = countries2016[['total','Area (km²)','2015 Population','CO2']].corr(method = 'pearson')
     fig = go.Figure(go.Heatmap(x=cr.columns, y = cr.columns, z = cr.values.tolist(), colorscale = 'rdylgn', zmin = -1, zmax = 1))
-    st.title("corelatie van de variabelen met totaal aantal medailes")
+    st.title("Correlatie van de variabelen met totaal aantal medailes")
     st.plotly_chart(fig)
-    st.write("""In deze plot kan je de corelatie zien tussen de varabelen in de dataset""")
+    st.write("""In deze plot kan je de Correlatie zien tussen de varabelen in de dataset""")
     
 
-    fig = px.scatter(countries2016, x='Area (km²)', y='total', title='Spreidingsdiagram totaal aantal medailes tegen opperflakte'
+    fig = px.scatter(countries2016, x='Area (km²)', y='total', title='Spreidingsdiagram totaal aantal medailles tegen opperflakte'
                  , trendline='ols',  hover_data= ['Team'], color = 'Continent')
     st.plotly_chart(fig)
 
-    fig = px.scatter(countries2016, x='CO2', y='total', title='Spreidingsdiagram totaal aantal medailes tegen CO2'
+    fig = px.scatter(countries2016, x='CO2', y='total', title='Spreidingsdiagram totaal aantal medailles tegen CO2'
                  , trendline='ols',  hover_data= ['Team'], color = 'Continent')
     st.plotly_chart(fig)
 
-    fig = px.scatter(countries2016, x='2015 Population', y='total', title='Spreidingsdiagram totaal aantal medailes tegen wereld populatie'
+    fig = px.scatter(countries2016, x='2015 Population', y='total', title='Spreidingsdiagram totaal aantal medailles tegen wereld populatie'
                  , trendline='ols',  hover_data= ['Team'], color = 'Continent')
     st.plotly_chart(fig)
     
